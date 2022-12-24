@@ -4,23 +4,21 @@
 #include <string.h>
 
 void help() {
+	/* Function help
+	 * Displays the help message.
+	 * */
 	printf("Called the help function.\n");
 	return;
 }
 
-void spawn(int argc, char **argv) {
-	// Function spawn.
-	// This function spawns the correct template from the template directory to the current directory.
-	char cwd[PATH_MAX];
+int copy_file(FILE *source, FILE *target) {
+	/* Function copy_file.
+	Copies file from source to target and closes the file.
+	FILE *source: file pointer to the source file.
+	FILE *target: file pointer to the target file.
 
-	printf("Called '%s' with %d arguments\n", argv[0], argc);
-
-	// File pointers for the source and the target
-	FILE *source, *target;
-
-	// Open the files. Here the name of the file will eventually change as the function will loop over the existing file in the templates directory.
-	target = fopen(strcat(getcwd(cwd, sizeof(cwd)), "/somefile.txt"), "w");
-	source = fopen("../templates/somefile.txt", "r");
+	CLOSES the file before returning.
+	*/
 
 	// Check if target open correctly.
 	if (target == NULL) {
@@ -42,18 +40,50 @@ void spawn(int argc, char **argv) {
 	// Closing input and output.
 	fclose(source);
 	fclose(target);
+	return 0;
+
+}
+
+void spawn(int argc, char **argv) {
+	/* Function spawn.
+	This function spawns the correct template from the template directory to the current directory.
+	argc: Number of argument passed.
+	argv: Argument vector passed from the command line.
+	*/
+	
+	// Get the current working directory
+	char buf[PATH_MAX];
+	char *cwd = getcwd(buf, sizeof(buf));
+
+	printf("Called '%s' with %d arguments\n", argv[0], argc);
+
+	// File pointers for the source and the target
+	FILE *source, *target;
+
+	// Open the files. Here the name of the file will eventually change as the function will loop over the existing file in the templates directory.
+	target = fopen(strcat(cwd, "/somefile.txt"), "w");
+	source = fopen("../templates/somefile.txt", "r");
+
+	copy_file(source, target);
+
 	return;
 }
 
 void save(int argc, char **argv) {
-	// Function save.
-	// This function saves the current directory as a template.
+	/* Function save.
+	This function saves the current directory as a template.
+	argc: Number of argument passed.
+	argv: Argument vector passed from the command line.
+	*/
 
 	printf("Called '%s' with %d arguments\n", argv[0], argc);
 	return;
 }
 
 int main(int argc, char **argv) {
+	/* Function main.
+	 * Provides basic UI in the command line.
+	 * */
 
 	printf("Number of arguments: %d\n", argc);
 	printf("Program name is: %s\n", argv[0]);
