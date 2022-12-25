@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
+
 
 void help() {
 	/* Function help
@@ -54,17 +56,49 @@ void spawn(int argc, char **argv) {
 	// Get the current working directory
 	char buf[PATH_MAX];
 	char *cwd = getcwd(buf, sizeof(buf));
+	strcat(cwd, "/");
 
-	printf("Called '%s' with %d arguments\n", argv[0], argc);
+	// Get the template directory
+	char template_dir[PATH_MAX];
+	strcpy(template_dir, cwd);
+	strcat(template_dir, "../templates/");
 
 	// File pointers for the source and the target
 	FILE *source, *target;
 
-	// Open the files. Here the name of the file will eventually change as the function will loop over the existing file in the templates directory.
-	target = fopen(strcat(cwd, "/somefile.txt"), "w");
-	source = fopen("../templates/somefile.txt", "r");
+	// Loop over all the files in the template directory and spawns them in the current directory.
 
-	copy_file(source, target);
+	// Create a namelist for the directory scan.
+	struct dirent **namelist;
+	// Get the number of subdir in the template dir. Alphanumerically sorted and inside namelist
+	int n = scandir(template_dir, &namelist, NULL, alphasort);
+	if (n < 0) {
+		printf("Error in scanning the template directory.");
+		exit(EXIT_FAILURE);
+	}
+
+	// Buffer for the source and target
+	char source_dir[PATH_MAX];
+	char target_dir[PATH_MAX];
+
+	while (n > 2) {
+		// Copy the current working dir and the template dir into the buffers.
+		strcpy(source_dir, cwd);
+		strcpy(target_dir, template_dir);
+
+		// Open the files. namelist is in alphanumerical order, so this loops from z->a->123.
+		// This is why this loop is while n > 2, so we don't try to copy over . and ..
+		target = fopen(strcat(source_dir, namelist[n - 1]->d_name), "w");
+		source = fopen(strcat(target_dir, namelist[n - 1]->d_name), "r");
+
+		// Actually copy the files from source to target
+		copy_file(source, target);
+
+		// The dirent struct is on the heap, must free it.
+		free(namelist[n - 1]);
+		n--;
+	}
+	free(namelist);
 
 	return;
 }
