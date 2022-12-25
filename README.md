@@ -15,7 +15,6 @@ template.
 ## Roadmap
 The developpement of this tool requires that I get familiar with handling files in C. I want to use C to get more familiar with this language mostly, but
 also because I don't want to paint myself into a corner by using bash if I want to eventually port to Windows. List of thing to implement, in order:
-1. User interface.
-2. File stream. Being able to copy files from the template folder to anywhere asked, modifing things as asked.
-3. Profile interface. Save frequent variables in profiles, json format.
-4. Save current folder as template. Configurations saved inside a json file.
+1. Being able to modify the file stream. This just need to have a check before copying the bytes.
+2. Profile interface. Save frequent variables in profiles, json format.
+3. Save current folder as template. Configurations saved inside a json file.
