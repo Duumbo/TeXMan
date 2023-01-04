@@ -41,25 +41,43 @@ int copy_file(FILE *source, FILE *target) {
 
 	// Copying the file to the output.
 	int ch;
+	// This flag is to check if we have encountered a @ before
 	bool flag = false;
 	while ((ch = fgetc(source)) != EOF) {
-		if (ch == ATSIGN) {
-			if (flag) {
-				while ((ch = fgetc(source)) != ATSIGN && ch != EOF) {
+		if (ch == ATSIGN) {  // If we encounter a @, it does not mean we have a token yet.
+			if (flag) {  // If we encounter 2 @, it means we have a token.
+				while ((ch = fgetc(source)) != ATSIGN && ch != EOF) {  // Let's get every char from the token.
 					char curr_char = ch;
+					// Add this char to the token.
 					strncat(buf, &curr_char, 1);
 				}
+
+				// We have the completed Token, we can now replace it with what we want.
 				printf("TOKEN FOUND: %s\n", buf);
+
+				// If ch is EOF, it means there was a syntax error in the input file, panic.
+				if (ch == EOF) {
+					printf("Exiting abnormally, tokeniser failed.");
+					break;
+				}
+
+				// Start the process up again
+				flag = false;
 				continue;
 			}
-			else {
+			else {  // This was the first @ we encountered, let's loop once more to find another one.
 				flag = true;
 				continue;
 			}
 		}
-		else {
+		else {  // Current char is not a @
+			if (flag) {  // Let's fix our mistake by putting a @ back.
+				fputc(ATSIGN, target);
+			}
+			// flag should be false, because it is not a suitable token.
 			flag = false;
 		}
+		// Put char without modifying it.
 		fputc(ch, target);
 	}
 
