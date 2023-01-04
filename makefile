@@ -6,5 +6,5 @@ compile: src/main.c
 	clang src/main.c -o output/build
 
 clean:
-	rm output/build
+	rm output/*
 

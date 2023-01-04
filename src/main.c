@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <stdbool.h>
+
+#define ATSIGN 64  // ASCII Value for @
 
 
 void help() {
@@ -22,6 +25,9 @@ int copy_file(FILE *source, FILE *target) {
 	CLOSES the file before returning.
 	*/
 
+	// New Buffer for the tokens.
+	char *buf = malloc(8);
+
 	// Check if target open correctly.
 	if (target == NULL) {
 		printf("Error opening output file\n Exiting...\n");
@@ -35,7 +41,25 @@ int copy_file(FILE *source, FILE *target) {
 
 	// Copying the file to the output.
 	int ch;
+	bool flag = false;
 	while ((ch = fgetc(source)) != EOF) {
+		if (ch == ATSIGN) {
+			if (flag) {
+				while ((ch = fgetc(source)) != ATSIGN && ch != EOF) {
+					char curr_char = ch;
+					strncat(buf, &curr_char, 1);
+				}
+				printf("TOKEN FOUND: %s\n", buf);
+				continue;
+			}
+			else {
+				flag = true;
+				continue;
+			}
+		}
+		else {
+			flag = false;
+		}
 		fputc(ch, target);
 	}
 
