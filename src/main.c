@@ -6,6 +6,11 @@
 #include <stdbool.h>
 
 #define ATSIGN 64  // ASCII Value for @
+#define NEWLINE 10 // ASCII value for \n
+#define COLON 58  // ASCII Value for :
+#define PROFILESPATH "/home/dumbo/Documents/Projets/TeXMan/profiles/"
+#define TEMPLATEPATH "/home/dumbo/Documents/Projets/TeXMan/templates/"
+#define PROFILELEN 46
 
 
 void help() {
@@ -16,7 +21,93 @@ void help() {
 	return;
 }
 
-int copy_file(FILE *source, FILE *target) {
+
+int get_profile(char *profile, char** key, char** val, int** token_offset, int** val_offset) {
+    // Returns tokens and values from profile file.
+    // Output: key, val, token_offset, val_offset, n_of_keys
+	// Open the desired profile.
+	FILE *profile_file;
+	char *extension = ".profile";
+	strcat(profile, extension);
+    int prof_file_len = strlen(profile);
+	char *profile_path = malloc((PROFILELEN + prof_file_len) * sizeof(char));  // The profile path is determined by the constant for no
+	strncpy(profile_path, PROFILESPATH, PROFILELEN);
+	strcat(profile_path, profile);
+	printf("Accessing %s\n", profile_path);
+	profile_file = fopen(profile_path, "r");
+
+	// Check if file exist. If it does not, return.
+	if (profile_file == NULL) {
+		printf("Invalid profile, %s is not defined.\n", profile);
+		return 0;
+	}
+
+	// Read until newline or EOF
+    int n_of_keys = 0;
+    int len_of_key = 0;
+    int len_of_val = 0;
+	bool flag = false;
+	int ch;
+	int i;
+	while ((ch = fgetc(profile_file)) != EOF) {
+		if (ch != NEWLINE) {
+			// Check if we need to switch for the value.
+			if (ch == COLON) {
+				flag = true;
+				i = 0;
+				continue;
+			}
+
+			// This branch is when we a filling up val
+			if (flag) {
+				// Point to the correct place in memory for value.
+				char *curr_val = *val + i * sizeof(char);
+				*curr_val = ch;
+				i++;
+                len_of_val++;
+			}
+			else{  // This branch is when we are filling up key
+
+				// Convert ch from byte to char
+				char curr_char = ch;
+				strncat(*key, &curr_char, 1);
+                len_of_key++;
+			}
+
+		}
+		else {  // Here we have finished filling up our key and val, let's process them.
+			// Set the flag back to false so we start by filling key up.
+			flag = false;
+            // Reallocate val and key to match true length
+            *val = realloc(*val, (len_of_val + 100) * sizeof(char));
+            *key = realloc(*key, (len_of_key + 100) * sizeof(char));
+            int *curr_offset = *token_offset + n_of_keys * sizeof(int);
+            int *curr_offset_val = *val_offset + n_of_keys * sizeof(int);
+            n_of_keys++;
+            *curr_offset = len_of_key;
+            *curr_offset_val = len_of_val;
+
+		}
+	}
+
+	// Let's process one last time our key and val.
+
+
+	// Close the file.
+	fclose(profile_file);
+	return n_of_keys;
+}
+
+
+int copy_file(
+        FILE *source,
+        FILE *target,
+        char *key,
+        char *val,
+        int *token_offset,
+        int *val_offset,
+        int n_of_keys
+) {
 	/* Function copy_file.
 	Copies file from source to target and closes the file.
 	FILE *source: file pointer to the source file.
@@ -53,11 +144,39 @@ int copy_file(FILE *source, FILE *target) {
 				}
 
 				// We have the completed Token, we can now replace it with what we want.
-				printf("TOKEN FOUND: %s\n", buf);
+                int len_of_buf = strlen(buf);
+                bool f = false;
+                bool found = false;
+                int offset_match = -1;
+                for (int i = 0; i < n_of_keys; ++i) {
+                    if (len_of_buf == *(token_offset + i*sizeof(int))) {
+                        found = true;
+                        for (int k = 0; k < *(token_offset + i*sizeof(int)); ++k) {
+                            found = found && (*(buf + k*sizeof(char)) == *(key + k*sizeof(char)));
+                        }
+                    }
+                    if (found) {
+                        printf("Token match at token_offset: %d\n", i);
+                        offset_match = i;
+                        break;
+                    }
+                }
+                if (f) {
+                    printf("Token '%s' not found in profile file. Replacing buf.\n", buf);
+                    for (int k =0; k < len_of_buf; ++k) {
+                        fputc(*(buf + k*sizeof(char)), target);
+                    }
+                }
+                else if (found) {
+                    printf("Replacing token by value.\n");
+                    for (int k = 0; k < *(val_offset + offset_match*sizeof(int)); ++k) {
+                        fputc(*(val + k*sizeof(char)), target);
+                    }
+                }
 
 				// If ch is EOF, it means there was a syntax error in the input file, panic.
 				if (ch == EOF) {
-					printf("Exiting abnormally, tokeniser failed.");
+					printf("Exiting abnormally, tokeniser failed.\n");
 					break;
 				}
 
@@ -94,16 +213,36 @@ void spawn(int argc, char **argv) {
 	argc: Number of argument passed.
 	argv: Argument vector passed from the command line.
 	*/
-	
+
 	// Get the current working directory
 	char buf[PATH_MAX];
 	char *cwd = getcwd(buf, sizeof(buf));
 	strcat(cwd, "/");
+    // Profile memory allocation
+	char *key = malloc(100 * sizeof(char));
+	char *val = malloc(100 * sizeof(char));
+    int *token_offset = malloc(sizeof(int));
+    *token_offset = 0;
+    int *val_offset = malloc(sizeof(int));
+    *val_offset = 0;
+    int n_of_keys = 0;
+	if (argc == 1) {
+		printf("Spawning with the default profile, all token will be replaced by nothing.\n");
+	}
+	if (argc == 2) {
+		char *to_profile = argv[1];
+		printf("Using profile: %s\n", argv[1]);
+		n_of_keys = get_profile(to_profile, &key, &val, &token_offset, &val_offset);
+	}
+	if (argc > 2) {
+		printf("Too many arguments.\n");
+		return;
+	}
 
 	// Get the template directory
 	char template_dir[PATH_MAX];
-	strcpy(template_dir, cwd);
-	strcat(template_dir, "../templates/");
+	strcpy(template_dir, TEMPLATEPATH);
+	//strcat(template_dir, TEMPLATEPATH);
 
 	// File pointers for the source and the target
 	FILE *source, *target;
@@ -115,7 +254,7 @@ void spawn(int argc, char **argv) {
 	// Get the number of subdir in the template dir. Alphanumerically sorted and inside namelist
 	int n = scandir(template_dir, &namelist, NULL, alphasort);
 	if (n < 0) {
-		printf("Error in scanning the template directory.");
+		printf("Error in scanning the template directory.\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -134,7 +273,7 @@ void spawn(int argc, char **argv) {
 		source = fopen(strcat(target_dir, namelist[n - 1]->d_name), "r");
 
 		// Actually copy the files from source to target
-		copy_file(source, target);
+		copy_file(source, target, key, val, token_offset, val_offset, n_of_keys);
 
 		// The dirent struct is on the heap, must free it.
 		free(namelist[n - 1]);
@@ -173,16 +312,22 @@ int main(int argc, char **argv) {
 
 	// Check for correct keywords passed as arguments.
 	if (strcmp(argv[1], "spawn") == 0) {
-		char *to_spawn[] = {"spawn"};
+		char *to_spawn[argc - 1];
+		// Move the argv for the sub-call.
+		int i;
+		for (i = 0; i < argc; i++) to_spawn[i] = argv[i + 1];
 		spawn(argc - 1, to_spawn);
 	}
 	else if (strcmp(argv[1], "save") == 0) {
-		char *to_save[] = {"save"};
+		char *to_save[argc - 1];
+		// Move the argv for the sub-call.
+		int i;
+		for (i = 0; i < argc; i++) to_save[i] = argv[i + 1];
 		save(argc - 1, to_save);
 	}
 	else {
 		help();
 	}
-	
+
 	return 0;
 }

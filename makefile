@@ -1,9 +1,12 @@
 .PHONY: all, compile, clean
 
+CFLAGS = -Wall -g
+CC = clang
+
 all: compile
 
 compile: src/main.c
-	clang src/main.c -o output/build
+	${CC} ${CFLAGS} src/main.c -o output/build
 
 clean:
 	rm output/*
