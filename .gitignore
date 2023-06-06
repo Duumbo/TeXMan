@@ -1,2 +1,7 @@
 output
 templates
+
+
+# Added by cargo
+
+/target
