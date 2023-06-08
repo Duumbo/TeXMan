@@ -65,7 +65,7 @@ fn write_to_out(out_path: &PathBuf, out_buffer: &str) {
 
 fn parse_token(file_buffer: &str, map: &HashMap<String, String>) -> String {
     // Pattern Definition
-    let pattern = Regex::new("::\\<(.*)\\>").unwrap();
+    let pattern = Regex::new("::<(.*?)>").unwrap();
 
     // Copy of file_buffer
     let mut out_buffer = file_buffer.clone().to_owned();

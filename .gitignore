@@ -5,3 +5,4 @@ templates
 # Added by cargo
 
 /target
+out
