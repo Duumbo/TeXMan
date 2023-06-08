@@ -1,17 +1,21 @@
 use crate::SubCommand;
 use crate::help;
-use crate::TEMPLATE_DIR;
 use std::collections::HashMap;
 use std::fs;
 use std::iter::zip;
-use regex::Regex;
 use std::path::{Path, PathBuf};
+use regex::Regex;
+use toml::Table;
 
-pub fn spawn(params: &Vec<String>) -> Result<(), std::io::Error>{
+pub fn spawn(params: &Vec<String>, configs: Table) -> Result<(), std::io::Error>{
 
     let mut token_map: HashMap<String, String> =
         HashMap::new();
     token_map.insert("lol".to_string(), "xd".to_string());
+
+    // Parse the template directory
+    let template_dir = configs["template_dir"].as_str()
+        .expect("Error in parsing template_dir.");
 
     // If number of param is incorrect, return help message.
     if params.len() < 4 {
@@ -25,7 +29,7 @@ pub fn spawn(params: &Vec<String>) -> Result<(), std::io::Error>{
         .expect("Could not create out_dir");
 
     // Read and write the template_dir one file at the time.
-    let template = Path::new(TEMPLATE_DIR);
+    let template = Path::new(template_dir);
     let template = template.join(Path::new(&params[2]));
     let (template_it, fnames) = read_from_template(&template)?;
     for (file, file_names) in zip(template_it, fnames) {
