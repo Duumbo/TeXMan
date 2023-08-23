@@ -1,32 +1,30 @@
+use crate::help::help;
 use crate::SubCommand;
-use crate::help;
+use regex::Regex;
 use std::collections::HashMap;
 use std::fs;
 use std::iter::zip;
 use std::path::{Path, PathBuf};
-use regex::Regex;
 use toml::Table;
 
-pub fn spawn(params: &Vec<String>, configs: Table) -> Result<(), std::io::Error>{
-
-    let mut token_map: HashMap<String, String> =
-        HashMap::new();
+pub fn spawn(params: &Vec<String>, configs: Table) -> Result<(), std::io::Error> {
+    let mut token_map: HashMap<String, String> = HashMap::new();
     token_map.insert("lol".to_string(), "xd".to_string());
 
     // Parse the template directory
-    let template_dir = configs["template_dir"].as_str()
+    let template_dir = configs["template_dir"]
+        .as_str()
         .expect("Error in parsing template_dir.");
 
     // If number of param is incorrect, return help message.
     if params.len() < 4 {
-        help(SubCommand::Spawn);
+        help(SubCommand::Spawn, configs);
         return Ok(());
     }
 
     // Create out_dir (param n3).
     let out_dir = Path::new(&params[3]);
-    fs::create_dir_all(&out_dir)
-        .expect("Could not create out_dir");
+    fs::create_dir_all(&out_dir).expect("Could not create out_dir");
 
     // Read and write the template_dir one file at the time.
     let template = Path::new(template_dir);
@@ -34,7 +32,7 @@ pub fn spawn(params: &Vec<String>, configs: Table) -> Result<(), std::io::Error>
     let (template_it, fnames) = read_from_template(&template)?;
     for (file, file_names) in zip(template_it, fnames) {
         let fb: Vec<u8> = fs::read(file)?;
-        let fb = match std::str::from_utf8(&fb){
+        let fb = match std::str::from_utf8(&fb) {
             Ok(s) => s,
             Err(_) => panic!("Error in encoding file buffer."),
         };
@@ -44,12 +42,8 @@ pub fn spawn(params: &Vec<String>, configs: Table) -> Result<(), std::io::Error>
     Ok(())
 }
 
-fn read_from_template(
-    template: &PathBuf
-) -> Result<(Vec<PathBuf>, Vec<PathBuf>), std::io::Error> {
-
-    let dir_coll = fs::read_dir(template)
-        .expect("Template dir incorrect");
+fn read_from_template(template: &PathBuf) -> Result<(Vec<PathBuf>, Vec<PathBuf>), std::io::Error> {
+    let dir_coll = fs::read_dir(template).expect("Template dir incorrect");
 
     let mut names = Vec::new();
     let mut dir = Vec::new();
@@ -63,8 +57,7 @@ fn read_from_template(
 }
 
 fn write_to_out(out_path: &PathBuf, out_buffer: &str) {
-    fs::write(out_path, out_buffer)
-        .expect("Could not write file.");
+    fs::write(out_path, out_buffer).expect("Could not write file.");
 }
 
 fn parse_token(file_buffer: &str, map: &HashMap<String, String>) -> String {
@@ -85,4 +78,3 @@ fn parse_token(file_buffer: &str, map: &HashMap<String, String>) -> String {
     }
     out_buffer
 }
-
