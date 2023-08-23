@@ -1,20 +1,23 @@
 # TeXMan
-### *A LaTeX Template Manager*
+### *A LaTeX Template Manager* (wip)
 
 ## Table of Content
 * Goals
 * Roadmap
 
-## Goals
-This program should manage a library of template for easy use for new project. Motivations for this project was the need to change things on a template too
-often. For example, the name on the template can't be always set for the same thing for team homework. These values could be managed by a smart template
-with profiles for automatic completion. A template also has skeletons for say a homework question, but you have to copy and paste multiple times for the
-accurate number of question in the specific homework. This tool should be able to automatically manage the number of duplicate pages you want in the
-template.
+## Installation
+No install script exists for the time being. If you want to use it, you can
+build it using cargo.
 
-## Roadmap
-The developpement of this tool requires that I get familiar with handling files in C. I want to use C to get more familiar with this language mostly, but
-also because I don't want to paint myself into a corner by using bash if I want to eventually port to Windows. List of thing to implement, in order:
-1. Being able to modify the file stream. This just need to have a check before copying the bytes.
-2. Profile interface. Save frequent variables in profiles, json format.
-3. Save current folder as template. Configurations saved inside a json file.
+## Usage
+To spawn a template, use the `spawn` subcommand.
+```
+spawn <template> <out_dir>
+```
+
+## Configuration
+The configuration file is placed in `$XDG_CONFIG_HOME/texman/texman.toml`. Here
+is a sample configuration file.
+```
+template_dir = "$HOME/Documents/Templates"
+```
