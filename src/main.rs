@@ -7,7 +7,6 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::iter::zip;
-use std::collections::HashMap;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -129,7 +128,12 @@ fn write_to_out(out_path: &PathBuf, out_buffer: &str) {
 
 fn parse_token(file_buffer: &str, map: &Table) -> String {
     // Pattern Definition
-    let pattern = Regex::new("::<(.*?)>").unwrap();
+    let pattern = Regex::new(
+        match map.get("regex") {
+            Some(value) => value.as_str().unwrap(),
+            None => panic!("The key `regex` is required in the profile file"),
+        }
+    ).expect("Recieved an illegal regular expression");
 
     // Copy of file_buffer
     let mut out_buffer = file_buffer.clone().to_owned();
