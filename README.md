@@ -2,7 +2,9 @@
 ### *A LaTeX Template Manager* (wip)
 
 ## Table of Content
-* Goals
+* Installation
+* Usage
+* Configuration
 * Roadmap
 
 ## Installation
@@ -21,3 +23,11 @@ is a sample configuration file.
 ```
 template_dir = "$HOME/Documents/Templates"
 ```
+
+## Roadmap
+Currently, the project can read a template directory and outputs it in the
+correct directory. Profiles are needed to be created. They need to pack the
+configurations:
+* Tokens and their values.
+* Override the regex to use. This is needed because not all languages can support
+the same token syntax.

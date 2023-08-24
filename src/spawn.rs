@@ -1,5 +1,3 @@
-use crate::help::help;
-use crate::SubCommand;
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs;
@@ -15,19 +13,15 @@ pub fn spawn(params: &Vec<String>, configs: Table) -> Result<(), std::io::Error>
     let template_dir = configs["template_dir"]
         .as_str()
         .expect("Error in parsing template_dir.");
+    let template = Path::new(template_dir);
 
-    // If number of param is incorrect, return help message.
-    if params.len() < 4 {
-        help(SubCommand::Spawn, configs);
-        return Ok(());
-    }
+    // Get the profile to use.
 
     // Create out_dir (param n3).
     let out_dir = Path::new(&params[3]);
     fs::create_dir_all(&out_dir).expect("Could not create out_dir");
 
     // Read and write the template_dir one file at the time.
-    let template = Path::new(template_dir);
     let template = template.join(Path::new(&params[2]));
     let (template_it, fnames) = read_from_template(&template)?;
     for (file, file_names) in zip(template_it, fnames) {

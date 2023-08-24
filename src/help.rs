@@ -48,7 +48,7 @@ pub fn help(kind: SubCommand, config_file: Table) {
                 "texman".cyan(),
                 "subcommand".cyan(),
                 "-[flags]".cyan(),
-                "args".italic().cyan()
+                "args".italic().cyan(),
             );
 
             title("Available Subcommands".into());
@@ -90,7 +90,6 @@ pub fn help(kind: SubCommand, config_file: Table) {
             }
 
             title("Flags");
-            general_flags();
             item("-p", "Overrides default profile.");
         }
     }
