@@ -99,18 +99,29 @@ fn spawn(params: &Vec<String>, configs: Table) -> Result<(), std::io::Error> {
         if let Some(ext) = file_names.extension() {
             if ext == "profile" {continue;}
         }
+
+        // Create the directory if it does not exists.
+        let fp = &out_dir.join(&file_names);
+        let parent_dir = &fp.parent().unwrap();
+        if *parent_dir != out_dir {
+            fs::create_dir_all(&parent_dir).expect("Could not create parent directory.");
+        }
+
+        // Read file buffer and test if it is utf-8.
         let fb: Vec<u8> = fs::read(file)?;
         let fb = match std::str::from_utf8(&fb) {
             Ok(s) => s,
             Err(_) => {
                 println!("Warning: File encoding is not UTF-8 for {:?}. Skipping patern matching.", &file_names);
-                let mut out_file = File::create(&out_dir.join(&file_names))?;
+                let mut out_file = File::create(&fp)?;
                 out_file.write_all(&fb)?;
                 continue;
             },
         };
+
+        // Write pattern matched output to file.
         let out_buffer = parse_token(&fb, &token_map);
-        write_to_out(&out_dir.join(&file_names), &out_buffer);
+        write_to_out(&fp, &out_buffer);
     }
     Ok(())
 }
@@ -122,6 +133,17 @@ fn read_from_template(template: &PathBuf) -> Result<(Vec<PathBuf>, Vec<PathBuf>)
     let mut dir = Vec::new();
     for elem in dir_coll {
         let e = elem?.path();
+        if e.is_dir() {
+            let (d, ns) = read_from_template(&e)?;
+            dir.extend(d);
+            let mut subdir: Vec<PathBuf> = Vec::new();
+            let subdir_name = PathBuf::from(e.file_name().unwrap());
+            for subfile in ns {
+                subdir.push(subdir_name.join(&subfile));
+            }
+            names.extend(subdir);
+            continue;
+        }
         dir.push(e.clone());
         names.push(PathBuf::from(e.file_name().unwrap()));
     }
