@@ -5,6 +5,8 @@ use regex::Regex;
 
 use std::env;
 use std::fs;
+use std::fs::File;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::iter::zip;
 
@@ -100,7 +102,12 @@ fn spawn(params: &Vec<String>, configs: Table) -> Result<(), std::io::Error> {
         let fb: Vec<u8> = fs::read(file)?;
         let fb = match std::str::from_utf8(&fb) {
             Ok(s) => s,
-            Err(_) => panic!("Error in encoding file buffer."),
+            Err(_) => {
+                println!("Warning: File encoding is not UTF-8 for {:?}. Skipping patern matching.", &file_names);
+                let mut out_file = File::create(&out_dir.join(&file_names))?;
+                out_file.write_all(&fb)?;
+                continue;
+            },
         };
         let out_buffer = parse_token(&fb, &token_map);
         write_to_out(&out_dir.join(&file_names), &out_buffer);
