@@ -1,6 +1,6 @@
 [package]
 name = "texman"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "TeXMan is a LaTeX template manager with the goal to be highly customizable."
 authors = ["Dimitri Bonanni-Surprenant <bond2102@usherbrooke.ca>"]
