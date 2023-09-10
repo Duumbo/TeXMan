@@ -43,10 +43,41 @@ template_dir = "$HOME/Documents/Templates"
 There will be a default in `/etc/texman.conf` soon.
 
 # Creating a profile
+Profiles are the way you can reuse templates that are very frequent. For example,
+I have a profile set for different classes with different but static teammates.
+I is convienient to simply call *TeXMan* and have my homework ready to go.
+
+Profile files use the [TOML](https://toml.io/en/) syntax. The only required key
+is the [Regex](https://en.wikipedia.org/wiki/Regular_expression) to parse token
+with. Ex.
+```toml
+regex = "<<(.*?)>>"
+```
+will match `<<TOKEN>>`. You can then add all the tokens you want as variable inside
+the profile file. If *TeXMan* matches a `<<TOKEN>>` but with no defined variable
+inside the profile file, it will simply output `TOKEN` in its place.
+
+#### Example Profile
+```toml
+regex = "<<(.*?)>>"
+NAME1 = "Dimitri Bonanni-Surprenant"
+NAME2 = "Teammate"
+CLASS = "Relativité Générale"
+CODE = "PHQ615"
+PROF = "The Teacher"
+UNIVERSITY = "The university"
+EMBLEM = "The Emplem File to use"
+FACULTY = "Science"
+DEPARTEMENT = "Physics"
+```
+Variable names could be lower case.
 
 # Installation
 
 ### Requirements
+*TeXMan* is written in [Rust](https://www.rust-lang.org/), a Rust compiler is
+needed. [Cargo](https://doc.rust-lang.org/cargo/) is the recommended way to
+compile this project, as there are many dependencies inside the `Cargo.toml`.
 
 ### Arch Linux
 For Arch users, there is a `PKGBUILD` available in the repository. For instruction
@@ -110,18 +141,9 @@ Available Profiles:
 
 # TODO
 
-- [x] 'Classic' template
-- [x] 'Homework' template (Overleaf's rebuild)
-- [x] 'Cover Letter' template
-- [ ] 'RevTeX' template
-- [ ] 'Beamer' template
-- [x] Install/uninstall scripts
-- [x] Version control
-- [ ] REAME.md
-- [ ] Add all well explained commands and features
-  - [ ] Supported colors
-  - [ ] Supported Universities (emblems + colors)
-- [ ] Setup default pdf viewer based on OS
-- [ ] Rebuild 'Homework' template's `quesiton{}{}` command as newenvironnement
+- [x] Have a customizable regex to replace token.
+- [] Have sensible defaults in `/etc/texman.conf`
+- [] Support parameter tokens.
+- [] Support variable number of file. (Ex. the are 3 questions in a homework, spawn 3 files.)
 
 # Credits
