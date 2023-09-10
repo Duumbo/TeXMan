@@ -145,5 +145,7 @@ Available Profiles:
 - [] Have sensible defaults in `/etc/texman.conf`
 - [] Support parameter tokens.
 - [] Support variable number of file. (Ex. the are 3 questions in a homework, spawn 3 files.)
+- [] Setup Docker test environnement (or other test environnement, I don't think
+cargo test will be sufficient in this case.)
 
 # Credits
